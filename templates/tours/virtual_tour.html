@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tour.title }} - Virtual Tour{% endblock %}
+
+{% block extra_css %}
+<!-- Pannellum CSS for 360° viewer -->
+<link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css"/>
+<style>
+    #panorama {
+        width: 100%;
+        height: 80vh;
+        background: #000;
+    }
+    .tour-controls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+    .tour-info {
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 1000;
+        max-width: 300px;
+    }
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+        border-radius: 15px;
+    }
+    .video-container iframe,
+    .video-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .audio-player {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Tour Header -->
+    <div class="tour-info position-absolute top-0 start-0 m-3" style="z-index: 1000;">
+        <h2>{{ tour.title }}</h2>
+        <p class="mb-0">{{ tour.monument.name }}</p>
+        <small>{{ tour.duration_minutes }} minutes tour</small>
+        <br>
+        <a href="{% url 'tours:monument_detail' tour.monument.slug %}" class="btn btn-sm btn-outline-light mt-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to Monument
+        </a>
+    </div>
+
+    <!-- 360° Viewer with Full Screen Button -->
+    {% if tour.tour_type == '360' and tour.panorama_image %}
+    <div style="position: relative;">
+        <!-- FULL SCREEN BUTTON -->
+        <button class="fullscreen-btn" onclick="toggleFullScreen()">
+            <i class="fas fa-expand"></i> Full Screen
+        </button>
+        <div id="panorama"></div>
+    </div>
+    {% endif %}
+
+    <!-- Video Tour -->
+    {% if tour.tour_type == 'video' %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="video-container">
+                    {% if tour.video_url %}
+                    <iframe src="{{ tour.video_url }}" frameborder="0" allowfullscreen></iframe>
+                    {% elif tour.video_file %}
+                    <video controls>
+                        <source src="{{ tour.video_file.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Audio Guide -->
+    {% if tour.tour_type == 'audio' or tour.audio_file %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="audio-player">
+                    <h4 class="text-center mb-3">Audio Guide</h4>
+                    {% if tour.audio_file %}
+                    <audio controls class="w-100">
+                        <source src="{{ tour.audio_file.url }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    {% endif %}
+                    <p class="text-center mt-3 text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Listen to the audio guide as you explore
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tour Description -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>About this Tour</h4>
+                        <p>{{ tour.description|linebreaks }}</p>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><i class="fas fa-clock text-primary me-2"></i> Duration: {{ tour.duration_minutes }} minutes</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><i class="fas fa-tag text-primary me-2"></i> Tour Type: {{ tour.get_tour_type_display }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Pannellum JS for 360° viewer -->
+<script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if tour.tour_type == '360' and tour.panorama_image %}
+        // Initialize 360° viewer
+        pannellum.viewer('panorama', {
+            "type": "equirectangular",
+            "panorama": "{{ tour.panorama_image.url }}",
+            "autoLoad": true,
+            "autoRotate": -2,
+            "compass": true,
+            "showZoomCtrl": true,
+            "mouseZoom": true,
+            "title": "{{ tour.title }}",
+            "author": "Cultural Heritage Portal"
+        });
+        {% endif %}
+    });
+
+    // Full screen function
+    function toggleFullScreen() {
+        const panorama = document.getElementById('panorama');
+        if (!panorama) return;
+
+        if (!document.fullscreenElement) {
+            if (panorama.requestFullscreen) {
+                panorama.requestFullscreen();
+            } else if (panorama.webkitRequestFullscreen) {
+                panorama.webkitRequestFullscreen();
+            } else if (panorama.msRequestFullscreen) {
+                panorama.msRequestFullscreen();
+            }
+            const btn = document.querySelector('.fullscreen-btn');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-compress"></i> Exit Full Screen';
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            const btn = document.querySelector('.fullscreen-btn');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-expand"></i> Full Screen';
+            }
+        }
+    }
+
+    document.addEventListener('fullscreenchange', function() {
+        const btn = document.querySelector('.fullscreen-btn');
+        if (!btn) return;
+        if (document.fullscreenElement) {
+            btn.innerHTML = '<i class="fas fa-compress"></i> Exit Full Screen';
+        } else {
+            btn.innerHTML = '<i class="fas fa-expand"></i> Full Screen';
+        }
+    });
+</script>
+{% endblock %}

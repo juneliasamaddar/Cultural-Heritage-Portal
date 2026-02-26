@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Cultural Heritage Portal{% endblock %}
+
+{% block content %}
+<!-- Dynamic Carousel from Database -->
+<div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {% for monument in monuments %}
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
+        {% endfor %}
+    </div>
+    <div class="carousel-inner">
+        {% for monument in monuments %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            {% if monument.main_image and monument.main_image.url %}
+            <img src="{{ monument.main_image.url }}" class="d-block w-100" alt="{{ monument.name }}" style="height: 90vh; object-fit: cover;">
+            {% else %}
+            <img src="https://via.placeholder.com/1920x1080?text={{ monument.name|urlencode }}" class="d-block w-100" alt="{{ monument.name }}" style="height: 90vh; object-fit: cover;">
+            {% endif %}
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 p-5 rounded" style="bottom: 20%;">
+                <h1 class="display-3 fw-bold">{{ monument.name }}</h1>
+                <p class="lead fs-3">{{ monument.short_description }}</p>
+                <a href="{% url 'tours:monument_detail' monument.slug %}" class="btn btn-primary btn-lg px-5 py-3 mt-3">Explore Now</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="carousel-item active">
+            <img src="https://via.placeholder.com/1920x1080?text=No+Monuments+Yet" class="d-block w-100" alt="No monuments" style="height: 90vh; object-fit: cover;">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 p-5 rounded" style="bottom: 20%;">
+                <h1 class="display-3 fw-bold">Welcome to Cultural Heritage</h1>
+                <p class="lead fs-3">Add monuments in admin panel to get started</p>
+                <a href="/admin/tours/monument/add/" class="btn btn-primary btn-lg px-5 py-3 mt-3">Add Monuments</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- Quick Stats -->
+<section class="py-4 bg-primary text-white">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-3 mb-md-0">
+                <h2 class="display-4 fw-bold">{{ monuments.count|default:"0" }}+</h2>
+                <p class="fs-5">Monuments</p>
+            </div>
+            <div class="col-md-3 col-6 mb-3 mb-md-0">
+                <h2 class="display-4 fw-bold">50+</h2>
+                <p class="fs-5">Virtual Tours</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold">1000+</h2>
+                <p class="fs-5">Articles</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold">10k+</h2>
+                <p class="fs-5">Happy Visitors</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filter Section -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h3 class="text-center mb-4">Explore by Region</h3>
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <button class="btn btn-outline-primary active filter-btn" data-filter="all">All India</button>
+                    <button class="btn btn-outline-primary filter-btn" data-filter="north">North India</button>
+                    <button class="btn btn-outline-primary filter-btn" data-filter="south">South India</button>
+                    <button class="btn btn-outline-primary filter-btn" data-filter="east">East India</button>
+                    <button class="btn btn-outline-primary filter-btn" data-filter="west">West India</button>
+                    <button class="btn btn-outline-primary filter-btn" data-filter="central">Central India</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Monuments with Skeleton Loading -->
+<section id="monuments" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5" data-aos="fade-up">Featured Monuments</h2>
+
+        <!-- SKELETON LOADER - Shows while content loads -->
+        <div id="skeletonLoader" class="row g-4">
+            {% for i in "123456"|make_list %}
+            <div class="col-md-6 col-lg-4">
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-image"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Actual Content - Initially hidden -->
+        <div id="monumentsContainer" class="row g-4" style="display: none;">
+            {% for monument in monuments %}
+            <div class="col-md-6 col-lg-4 monument-card" data-region="{{ monument.state|lower }}" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'100' }}">
+                <div class="card h-100 shadow-sm hover-card">
+                    {% if monument.main_image and monument.main_image.url %}
+                        <!-- ZOOM CONTAINER -->
+                        <div class="zoom-container" style="height: 250px;">
+                            <img src="{{ monument.main_image.url }}" class="card-img-top zoom-image" alt="{{ monument.name }}" style="height: 250px; object-fit: cover;">
+                            <div class="zoom-lens"></div>
+                        </div>
+                    {% else %}
+                        <div style="height: 250px; background: linear-gradient(135deg, #8B4513 0%, #DAA520 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 2rem;">
+                            <span>{{ monument.name|slice:":1" }}{{ monument.name|slice:"-1:" }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ monument.name }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>{{ monument.location }}, {{ monument.state }}
+                        </p>
+                        <p class="card-text">{{ monument.short_description|truncatewords:15 }}</p>
+
+                        <!-- Quick Info -->
+                        <div class="d-flex justify-content-between mb-3">
+                            <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i>{{ monument.period }}</small>
+                            <small class="text-muted"><i class="fas fa-crown me-1"></i>{{ monument.dynasty }}</small>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'tours:monument_detail' monument.slug %}" class="btn btn-outline-primary">
+                                <i class="fas fa-info-circle me-1"></i>View Details
+                            </a>
+                            <button class="btn btn-outline-danger save-favorite" data-id="{{ monument.id }}">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No monuments available yet.
+                    <a href="/admin/tours/monument/add/" class="alert-link">Add monuments in admin panel</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Virtual Tours Preview -->
+<section id="tours" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5" data-aos="fade-up">Experience Virtual Tours</h2>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-right">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="display-1 text-primary mb-3">
+                            <i class="fas fa-vr-cardboard"></i>
+                        </div>
+                        <h4>360° Interactive Tours</h4>
+                        <p class="text-muted">Explore monuments from every angle with our immersive 360° views. Feel like you're actually there!</p>
+                        <a href="{% url 'tours:search' %}?q=360" class="btn btn-outline-primary">Explore 360° Tours</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="display-1 text-primary mb-3">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h4>Video Guides</h4>
+                        <p class="text-muted">Watch expert-guided video tours with detailed historical insights and fascinating stories.</p>
+                        <a href="{% url 'tours:search' %}?q=video" class="btn btn-outline-primary">Watch Videos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-left">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="display-1 text-primary mb-3">
+                            <i class="fas fa-headphones"></i>
+                        </div>
+                        <h4>Audio Narration</h4>
+                        <p class="text-muted">Listen to detailed audio guides in multiple languages as you explore at your own pace.</p>
+                        <a href="{% url 'tours:search' %}?q=audio" class="btn btn-outline-primary">Listen Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h3 class="mb-3">Stay Updated</h3>
+                <p class="mb-4">Subscribe to our newsletter for latest virtual tours and cultural articles.</p>
+                <form class="row g-3 justify-content-center" method="POST" action="#">
+                    {% csrf_token %}
+                    <div class="col-md-6">
+                        <input type="email" class="form-control form-control-lg" placeholder="Enter your email" required>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" class="btn btn-light btn-lg">Subscribe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Extra JavaScript for filters -->
+{% block extra_js %}
+<script>
+    // Initialize toastr if not already initialized
+    if (typeof toastr !== 'undefined') {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: "toast-top-right",
+            timeOut: 3000
+        };
+    }
+
+    // Filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const monumentCards = document.querySelectorAll('.monument-card');
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.dataset.filter;
+
+                monumentCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        const region = card.dataset.region;
+                        if (region && region.includes(filter)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+
+        // Save to favorites
+        document.querySelectorAll('.save-favorite').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('far')) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Added to favorites!');
+                    } else {
+                        alert('Added to favorites!');
+                    }
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.info('Removed from favorites');
+                    } else {
+                        alert('Removed from favorites');
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
