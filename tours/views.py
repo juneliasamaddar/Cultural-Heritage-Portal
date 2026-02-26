@@ -8,10 +8,12 @@ class HomeView(ListView):
     model = Monument
     template_name = 'home.html'
     context_object_name = 'monuments'
+    paginate_by = 15  # 👈 Shows 12 monuments per page with pagination
 
     def get_queryset(self):
-        # Get all monuments, but prioritize those with images
-        return Monument.objects.all().order_by('-main_image', 'name')[:6]
+        # Get all monuments (unlimited)
+        return Monument.objects.all().order_by('-created_at')  # Newest first
+
 
 class MonumentDetailView(DetailView):
     model = Monument

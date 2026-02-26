@@ -241,10 +241,19 @@
         };
     }
 
-    // Filter functionality
+    // Filter functionality - FIXED VERSION
     document.addEventListener('DOMContentLoaded', function() {
         const filterButtons = document.querySelectorAll('.filter-btn');
         const monumentCards = document.querySelectorAll('.monument-card');
+
+        // Map states to regions (you can add more as needed)
+        const regionMap = {
+            'north': ['delhi', 'uttar pradesh', 'rajasthan', 'punjab', 'haryana', 'jammu', 'kashmir', 'himachal', 'uttarakhand'],
+            'south': ['tamil nadu', 'karnataka', 'kerala', 'andhra pradesh', 'telangana', 'pondicherry'],
+            'east': ['west bengal', 'odisha', 'bihar', 'jharkhand', 'assam', 'nagaland', 'manipur', 'meghalaya', 'arunachal', 'sikkim', 'tripura', 'mizoram'],
+            'west': ['maharashtra', 'gujarat', 'goa', 'dadra', 'daman', 'diu'],
+            'central': ['madhya pradesh', 'chhattisgarh']
+        };
 
         filterButtons.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -258,16 +267,26 @@
                     if (filter === 'all') {
                         card.style.display = 'block';
                     } else {
-                        const region = card.dataset.region;
-                        if (region && region.includes(filter)) {
+                        // Get the state from data-region attribute
+                        const state = card.dataset.region ? card.dataset.region.toLowerCase() : '';
+
+                        // Check if this state belongs to the selected region
+                        if (regionMap[filter] && regionMap[filter].some(s => state.includes(s))) {
                             card.style.display = 'block';
                         } else {
                             card.style.display = 'none';
                         }
                     }
                 });
+
+                // Optional: Show a message if no monuments in this region
+                const visibleCount = Array.from(monumentCards).filter(card => card.style.display !== 'none').length;
+                console.log(`${visibleCount} monuments found in ${filter} region`);
             });
         });
+
+        // Trigger click on "All India" button by default
+        document.querySelector('.filter-btn[data-filter="all"]').click();
 
         // Save to favorites
         document.querySelectorAll('.save-favorite').forEach(btn => {
@@ -294,6 +313,46 @@
         });
     });
 </script>
-{% endblock %}
 
+<!-- Pagination Controls - Set to 15 per page -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1" aria-label="First">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
 {% endblock %}
