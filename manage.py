@@ -3,14 +3,9 @@
 import os
 import sys
 
-
 def main():
     """Run administrative tasks."""
-<<<<<<< HEAD
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cultural_heritage.settings')
-=======
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cultural_portal.settings')
->>>>>>> c45dea7ca62fbd46330ef2d8ad23b5d9664012d8
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -20,7 +15,6 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
     execute_from_command_line(sys.argv)
-
 
 if __name__ == '__main__':
     main()
