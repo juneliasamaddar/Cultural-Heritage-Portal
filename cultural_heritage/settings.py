@@ -12,9 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-your-secret-key-here'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True  # Will be overridden for production
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = []  # Will be overridden for production
 
 # Application definition
 INSTALLED_APPS = [
@@ -24,8 +24,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tours',  # Your tours app
-    'frontend',  # Your frontend app
+    'tours',
+    'frontend',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -40,11 +41,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'cultural_heritage.urls'
 
-# Templates configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # templates folder
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -95,37 +95,22 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Media files (Uploads)
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ===================== SERVER CONFIGURATION (PythonAnywhere) =====================
-import os
+# ===================== LOGIN REDIRECT SETTINGS =====================
+# These work for both local and production
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/profile/'
+LOGOUT_REDIRECT_URL = '/'
 
+# ===================== PRODUCTION SETTINGS (PythonAnywhere) =====================
 # Check if we're running on PythonAnywhere
 if 'PYTHONANYWHERE_DOMAIN' in os.environ:
-    # Security settings
     DEBUG = False
-    ALLOWED_HOSTS = ['vstevenjoy.pythonanywhere.com']  # Replace with your username
-
-    # Static files configuration - CRITICAL for your CSS/JS to work!
-    STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'static'),
-    ]
-
-    # Media files for uploaded images
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-    # Database (SQLite is fine for free tier)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+    ALLOWED_HOSTS = ['vstevenjoy.pythonanywhere.com', '127.0.0.1', 'localhost']
+    # Static and media settings are already defined above

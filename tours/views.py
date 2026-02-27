@@ -2,17 +2,19 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.db import models
 from .models import Monument, VirtualTour
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 
 
 class HomeView(ListView):
     model = Monument
     template_name = 'home.html'
     context_object_name = 'monuments'
-    paginate_by = 15  # 👈 Shows 12 monuments per page with pagination
+    paginate_by = 15
 
     def get_queryset(self):
-        # Get all monuments (unlimited)
-        return Monument.objects.all().order_by('-created_at')  # Newest first
+        return Monument.objects.all().order_by('-created_at')
 
 
 class MonumentDetailView(DetailView):
@@ -35,13 +37,11 @@ class VirtualTourView(DetailView):
     context_object_name = 'tour'
 
 
-# Search function
 def search(request):
     query = request.GET.get('q', '')
     monuments = []
 
     if query:
-        # Search in name, location, state, and description
         monuments = Monument.objects.filter(
             models.Q(name__icontains=query) |
             models.Q(location__icontains=query) |
@@ -55,3 +55,17 @@ def search(request):
         'count': monuments.count() if monuments else 0
     }
     return render(request, 'search_results.html', context)
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/login/')  # 👈 CHANGED FROM 'login' TO '/login/'
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form})
+
+@login_required
+def profile(request):
+    return render(request, 'profile.html')

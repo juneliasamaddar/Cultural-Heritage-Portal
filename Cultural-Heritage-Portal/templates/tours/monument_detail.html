@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ monument.name }} - Cultural Heritage{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gallery-img {
+        cursor: pointer;
+        transition: transform 0.3s;
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+        border-radius: 10px;
+    }
+    .gallery-img:hover {
+        transform: scale(1.05);
+    }
+    .main-image {
+        height: 500px;
+        object-fit: cover;
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .info-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .info-item {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    .share-buttons .btn {
+        transition: all 0.3s;
+    }
+    .share-buttons .btn:hover {
+        transform: translateY(-3px);
+    }
+    #map {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .rating {
+        color: #ffc107;
+    }
+    .weather-widget {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- ENHANCED BREADCRUMB -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tours:home' %}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'tours:search' %}?q={{ monument.state }}" class="text-decoration-none">{{ monument.state }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'tours:search' %}?q={{ monument.location }}" class="text-decoration-none">{{ monument.location }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ monument.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Main Image and Basic Info -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <!-- MAIN IMAGE WITH ZOOM -->
+            <div class="zoom-container" style="position: relative; overflow: hidden; border-radius: 15px; height: 500px;">
+                {% if monument.main_image and monument.main_image.url %}
+                <img src="{{ monument.main_image.url }}" class="main-image zoom-image" alt="{{ monument.name }}" id="mainImage" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                <img src="https://via.placeholder.com/1200x800?text={{ monument.name }}" class="main-image" alt="{{ monument.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% endif %}
+                <div class="zoom-lens" id="zoomLens"></div>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-muted"><i class="fas fa-search-plus me-1"></i> Hover to zoom | Double-click for full zoom</small>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="info-card" data-aos="fade-left">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="mb-0">{{ monument.name }}</h1>
+                    <button class="btn btn-outline-danger" onclick="toggleFavorite({{ monument.id }})">
+                        <i class="far fa-heart" id="fav-icon-{{ monument.id }}"></i>
+                    </button>
+                </div>
+
+                <!-- Rating -->
+                <div class="rating mb-3">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                    <span class="text-muted ms-2">(4.5/5 - 128 reviews)</span>
+                </div>
+
+                <div class="info-item">
+                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                    <strong>Location:</strong> {{ monument.location }}, {{ monument.state }}
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-calendar-alt text-primary me-2"></i>
+                    <strong>Period:</strong> {{ monument.period }}
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-crown text-primary me-2"></i>
+                    <strong>Dynasty:</strong> {{ monument.dynasty }}
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-clock text-primary me-2"></i>
+                    <strong>Visiting Hours:</strong> {{ monument.visiting_hours }}
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-ticket-alt text-primary me-2"></i>
+                    <strong>Entry Fee:</strong> {{ monument.entry_fee|default:"Free" }}
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-language text-primary me-2"></i>
+                    <strong>Audio Guide:</strong> Available in 5 languages
+                </div>
+
+                <!-- Weather Widget -->
+                <div class="weather-widget mt-3">
+                    <h6><i class="fas fa-cloud-sun me-2"></i>Weather Today</h6>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span class="display-6">32°C</span>
+                            <br>
+                            <small>Sunny</small>
+                        </div>
+                        <div class="text-end">
+                            <small>Humidity: 45%</small>
+                            <br>
+                            <small>Wind: 12 km/h</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Buttons -->
+            <div class="share-buttons mt-3">
+                <h5>Share this monument:</h5>
+                <div class="d-flex gap-2">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-primary">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ monument.name }}" target="_blank" class="btn btn-info">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://wa.me/?text={{ monument.name }} - {{ request.build_absolute_uri }}" target="_blank" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+
+                    <!-- FIXED Pinterest Button with condition -->
+                    {% if monument.main_image and monument.main_image.url %}
+                    <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri }}&media={{ monument.main_image.url }}&description={{ monument.name }}" target="_blank" class="btn btn-danger">
+                        <i class="fab fa-pinterest"></i>
+                    </a>
+                    {% else %}
+                    <button class="btn btn-danger" disabled title="No image to share">
+                        <i class="fab fa-pinterest"></i>
+                    </button>
+                    {% endif %}
+
+                    <button class="btn btn-secondary" onclick="copyToClipboard('{{ request.build_absolute_uri }}')">
+                        <i class="fas fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="monumentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab">About</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">History</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="architecture-tab" data-bs-toggle="tab" data-bs-target="#architecture" type="button" role="tab">Architecture</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="visitor-info-tab" data-bs-toggle="tab" data-bs-target="#visitor-info" type="button" role="tab">Visitor Info</button>
+                </li>
+            </ul>
+
+            <div class="tab-content p-4 border border-top-0 rounded-bottom" style="background: white;">
+                <div class="tab-pane fade show active" id="about" role="tabpanel">
+                    <h3>About {{ monument.name }}</h3>
+                    <p class="lead">{{ monument.description|linebreaks }}</p>
+                </div>
+                <div class="tab-pane fade" id="history" role="tabpanel">
+                    <h3>Historical Significance</h3>
+                    <p>Built during the {{ monument.period }}, this magnificent structure represents the architectural brilliance of the {{ monument.dynasty }} dynasty. It stands as a testament to the rich cultural heritage of India.</p>
+                </div>
+                <div class="tab-pane fade" id="architecture" role="tabpanel">
+                    <h3>Architectural Style</h3>
+                    <p>The monument showcases stunning {{ monument.dynasty }} architecture with intricate carvings, magnificent domes, and beautiful gardens.</p>
+                </div>
+                <div class="tab-pane fade" id="visitor-info" role="tabpanel">
+                    <h3>Visitor Information</h3>
+                    <p><strong>Best time to visit:</strong> October to March</p>
+                    <p><strong>Photography:</strong> Allowed (free)</p>
+                    <p><strong>Guided tours:</strong> Available in English, Hindi, and other languages</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Gallery with Zoom -->
+    {% if monument.images.all %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3">Photo Gallery</h3>
+            <div class="row g-3">
+                {% for image in monument.images.all %}
+                <div class="col-md-3">
+                    <div class="zoom-container" style="position: relative; overflow: hidden; border-radius: 10px; height: 200px;">
+                        <img src="{{ image.image.url }}" class="img-fluid gallery-img zoom-image" alt="{{ image.caption }}" onclick="openImageModal('{{ image.image.url }}', '{{ image.caption }}')" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="zoom-lens"></div>
+                    </div>
+                    {% if image.caption %}
+                    <p class="text-center mt-2"><small>{{ image.caption }}</small></p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Location Map -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3">Location</h3>
+            <div id="map" style="height: 400px; width: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- Virtual Tours Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3">Virtual Tours</h3>
+            <div class="row">
+                {% for tour in tours %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'100' }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ tour.title }}</h5>
+                            <p class="card-text">{{ tour.description|truncatewords:15 }}</p>
+                            <div class="mb-3">
+                                <span class="badge bg-primary">{{ tour.get_tour_type_display }}</span>
+                                <span class="badge bg-secondary ms-2"><i class="fas fa-clock me-1"></i>{{ tour.duration_minutes }} min</span>
+                            </div>
+                            <a href="{% url 'tours:virtual_tour' tour.id %}" class="btn btn-primary w-100">
+                                <i class="fas fa-play me-2"></i>Start Tour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No virtual tours available for this monument yet.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Nearby Attractions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3">Nearby Attractions</h3>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <img src="https://via.placeholder.com/400x300?text=Nearby+Attraction" class="card-img-top" alt="Nearby">
+                        <div class="card-body">
+                            <h6>Nearby Temple</h6>
+                            <small class="text-muted">2.5 km away</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <img src="https://via.placeholder.com/400x300?text=Local+Market" class="card-img-top" alt="Market">
+                        <div class="card-body">
+                            <h6>Local Market</h6>
+                            <small class="text-muted">1.2 km away</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <img src="https://via.placeholder.com/400x300?text=Museum" class="card-img-top" alt="Museum">
+                        <div class="card-body">
+                            <h6>City Museum</h6>
+                            <small class="text-muted">3.5 km away</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ monument.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img src="" class="img-fluid w-100" id="modalImage" alt="">
+                <div class="p-3" id="modalCaption"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global function for Google Maps
+    window.initMap = function() {
+        {% if monument.latitude and monument.longitude %}
+        const location = { lat: {{ monument.latitude }}, lng: {{ monument.longitude }} };
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 15,
+            center: location,
+            mapTypeId: 'satellite'
+        });
+        const marker = new google.maps.Marker({
+            position: location,
+            map: map,
+            title: "{{ monument.name }}",
+            animation: google.maps.Animation.DROP
+        });
+
+        const infowindow = new google.maps.InfoWindow({
+            content: '<h6>{{ monument.name }}</h6><p>{{ monument.location }}</p>'
+        });
+
+        marker.addListener('click', function() {
+            infowindow.open(map, marker);
+        });
+        {% endif %}
+    };
+
+    // Image Modal Function
+    function openImageModal(imageUrl, caption) {
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('modalCaption').innerHTML = caption || '{{ monument.name }}';
+        modal.show();
+    }
+
+    // Toggle Favorite
+    function toggleFavorite(id) {
+        const icon = document.getElementById(`fav-icon-${id}`);
+        if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            toastr.success('Added to favorites!');
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            toastr.info('Removed from favorites');
+        }
+    }
+
+    // Copy to clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            toastr.success('Link copied to clipboard!');
+        }).catch(err => {
+            toastr.error('Failed to copy link');
+        });
+    }
+</script>
+
+<!-- Google Maps API with YOUR key -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8_IGMkRq0ShKH_0dvtjiiSV_bkV_L9cQ&callback=initMap" async defer></script>
+{% endblock %}
