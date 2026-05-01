@@ -17,6 +17,12 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+    <a href="{% url 'tours:login' %}">Login</a>
+    <a href="{% url 'tours:signup' %}">Sign Up</a>
+    <a href="{% url 'tours:profile' %}" class="btn btn-outline-primary">
+        My Profile
+    </a>
+
     <!-- Skeleton Loading & Dark Mode CSS -->
     <style>
         /* Skeleton Loading Animation */

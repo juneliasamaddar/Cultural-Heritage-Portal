@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Monument, MonumentImage, VirtualTour
+from .models import Monument, MonumentImage, VirtualTour, Content
 
 class MonumentImageInline(admin.TabularInline):
     model = MonumentImage
@@ -44,3 +44,9 @@ class VirtualTourAdmin(admin.ModelAdmin):
     list_display = ['title', 'monument', 'tour_type', 'duration_minutes', 'is_published']
     list_filter = ['tour_type', 'is_published', 'monument']
     search_fields = ['title', 'description']
+
+@admin.register(Content)
+class ContentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'created_by', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('title', 'description')

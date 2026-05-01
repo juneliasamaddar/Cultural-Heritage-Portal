@@ -129,3 +129,7 @@ if 'PYTHONANYWHERE_DOMAIN' in os.environ:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

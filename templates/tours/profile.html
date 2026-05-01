@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+
+    <h2 class="mb-4 text-center">👤 My Profile</h2>
+
+    <h4 class="mb-4">My Articles</h4>
+
+    <div class="row g-4">
+        {% for content in contents %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+
+                {% if content.image %}
+                    <img src="{{ content.image.url }}" class="card-img-top" style="height:200px; object-fit:cover;">
+                {% endif %}
+
+                <div class="card-body">
+                    <h5>{{ content.title }}</h5>
+                    <p class="text-muted">{{ content.location }}</p>
+                    <p>{{ content.description|truncatewords:15 }}</p>
+                </div>
+
+                <div class="card-footer text-muted d-flex justify-content-between">
+                    <span>{{ content.created_at|date:"M d, Y" }}</span>
+                    <span class="badge bg-secondary">{{ content.status }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between mt-2">
+                    <a href="{% url 'tours:edit_content' content.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'tours:delete_content' content.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-muted">You haven't created any content yet.</p>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
