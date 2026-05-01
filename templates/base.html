@@ -229,17 +229,35 @@
                     <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
                 </form>
 
-                <!-- User Menu -->
+                <!-- USER MENU FOR RANDOM USERS - COMPLETE FIXED VERSION -->
                 <div class="dropdown ms-3">
-                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
-                        <i class="fas fa-user"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Login</a></li>
-                        <li><a class="dropdown-item" href="#">Register</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">Profile</a></li>
-                    </ul>
+                    {% if user.is_authenticated %}
+                        <!-- Show when user is logged in -->
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userMenuLoggedIn" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/profile/"><i class="fas fa-id-card me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="/logout/" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item" style="background: none; border: none; width: 100%; text-align: left;">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    {% else %}
+                        <!-- Show when user is logged out -->
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="userMenuLoggedOut" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>Account
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/login/"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+                            <li><a class="dropdown-item" href="/signup/"><i class="fas fa-user-plus me-2"></i>Sign Up</a></li>
+                        </ul>
+                    {% endif %}
                 </div>
 
                 <!-- DARK MODE TOGGLE -->
@@ -256,68 +274,68 @@
     </main>
 
     <!-- Footer -->
-<footer class="bg-dark text-white py-5 mt-5">
-    <div class="container">
-        <div class="row">
-            <!-- Cultural Heritage column -->
-            <div class="col-md-4 mb-4">
-                <h5><i class="fas fa-landmark me-2"></i>Cultural Heritage</h5>
-                <p>Preserving and showcasing India's rich cultural heritage through immersive virtual experiences.</p>
-                <div class="social-links">
-                    <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook fa-2x"></i></a>
-                    <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter fa-2x"></i></a>
-                    <a href="#" class="text-white-50 me-3"><i class="fab fa-instagram fa-2x"></i></a>
-                    <a href="#" class="text-white-50"><i class="fab fa-youtube fa-2x"></i></a>
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <!-- Cultural Heritage column -->
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-landmark me-2"></i>Cultural Heritage</h5>
+                    <p>Preserving and showcasing India's rich cultural heritage through immersive virtual experiences.</p>
+                    <div class="social-links">
+                        <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook fa-2x"></i></a>
+                        <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter fa-2x"></i></a>
+                        <a href="#" class="text-white-50 me-3"><i class="fab fa-instagram fa-2x"></i></a>
+                        <a href="#" class="text-white-50"><i class="fab fa-youtube fa-2x"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links column -->
+                <div class="col-md-2 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50 text-decoration-none">About Us</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Contact</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Blog</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">FAQs</a></li>
+                    </ul>
+                </div>
+
+                <!-- Explore column -->
+                <div class="col-md-3 mb-4">
+                    <h5>Explore</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50 text-decoration-none">Monuments</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Virtual Tours</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Articles</a></li>
+                        <li><a href="#" class="text-white-50 text-decoration-none">Gallery</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="col-md-3 mb-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li class="text-white-50 mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:2400030530@kluniversity.in" class="text-white-50">2400030530@kluniversity.in</a>
+                        </li>
+                        <li class="text-white-50 mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:2400032187@kluniversity.in" class="text-white-50">2400032187@kluniversity.in</a>
+                        </li>
+                        <li class="text-white-50 mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:2400090115@kluniversity.in" class="text-white-50">2400090115@kluniversity.in</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-
-            <!-- Quick Links column -->
-            <div class="col-md-2 mb-4">
-                <h5>Quick Links</h5>
-                <ul class="list-unstyled">
-                    <li><a href="#" class="text-white-50 text-decoration-none">About Us</a></li>
-                    <li><a href="#" class="text-white-50 text-decoration-none">Contact</a></li>
-                    <li><a href="#" class="text-white-50 text-decoration-none">Blog</a></li>
-                    <li><a href="#" class="text-white-50 text-decoration-none">FAQs</a></li>
-                </ul>
-            </div>
-
-            <!-- Explore column -->
-            <div class="col-md-3 mb-4">
-                <h5>Explore</h5>
-                <ul class="list-unstyled">
-                    <li><a href="#" class="text-white-50 text-decoration-none">Monuments</a></li>
-                    <li><a href="#" class="text-white-50 text-decoration-none">Virtual Tours</a></li>
-                    <li><a href="#" class="text-white-50 text-decoration-none">Articles</a></li>
-                    <li><a href="#" class="text-white-50 text-decoration-none">Gallery</a></li>
-                </ul>
-            </div>
-
-            <!-- YOUR NEW CONTACT SECTION - REPLACED HERE -->
-            <div class="col-md-3 mb-4">
-                <h5>Contact Us</h5>
-                <ul class="list-unstyled">
-                    <li class="text-white-50 mb-2">
-                        <i class="fas fa-envelope me-2"></i>
-                        <a href="mailto:2400030530@kluniversity.in" class="text-white-50">2400030530@kluniversity.in</a>
-                    </li>
-                    <li class="text-white-50 mb-2">
-                        <i class="fas fa-envelope me-2"></i>
-                        <a href="mailto:2400032187@kluniversity.in" class="text-white-50">2400032187@kluniversity.in</a>
-                    </li>
-                    <li class="text-white-50 mb-2">
-                        <i class="fas fa-envelope me-2"></i>
-                        <a href="mailto:2400090115@kluniversity.in" class="text-white-50">2400090115@kluniversity.in</a>
-                    </li>
-                </ul>
+            <hr class="bg-white">
+            <div class="text-center">
+                <p class="mb-0">&copy; Cultural Heritage Portal.</p>
             </div>
         </div>
-        <hr class="bg-white">
-        <div class="text-center">
-            <p class="mb-0">&copy; Cultural Heritage Portal.</p>
-        </div>
-    </div>
-</footer>
+    </footer>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
